@@ -51,7 +51,9 @@ QtObject {
     }
 
     function formatCrypto(received, amount, ticker, fiat_amount, fiat) {
-        return diffPrefix(received) + amount + " " + ticker + (fiat_amount ? " (" + formatFiat("", fiat_amount, fiat) + ")" : "")
+        var limitdecimals = Number(Math.round(amount+'e'+8)+'e-'+8)
+//        return diffPrefix(received) + amount + " " + ticker + (fiat_amount ? " (" + formatFiat("", fiat_amount, fiat) + ")" : "")
+        return diffPrefix(received) + limitdecimals + " " + ticker + (fiat_amount ? " (" + formatFiat("", fiat_amount, fiat) + ")" : "")
     }
 
     function fullCoinName(name, ticker) {
