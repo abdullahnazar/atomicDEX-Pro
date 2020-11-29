@@ -11,7 +11,7 @@
 
 ### Install QT
 
-Follow the [QT installation (5.14) instructions](https://www.qt.io/download). 
+Follow the [QT installation (5.15) instructions](https://www.qt.io/download). 
 
 
 ### Install Windows dependencies
@@ -29,9 +29,9 @@ scoop install cmake --global
 scoop install git --global
 ```
 
-- next add a `QT_INSTALL_CMAKE_PATH` environment variable pointing to the msvc_2017x64 location
+- next add a `QT_INSTALL_CMAKE_PATH` environment variable pointing to the msvc_2019x64 location
 
-e.g.: `set QT_INSTALL_CMAKE_PATH "C:\Qt\5.14.1\msvc2017_64"`
+e.g.: `set QT_INSTALL_CMAKE_PATH "C:\Qt\5.15.0\msvc2019_64"`
 
 
 ### Install macOS dependencies
@@ -49,16 +49,56 @@ Add the following environment variables to your `~/.bashrc` or `~/.zshrc` profil
 
 e.g.:
 ```bash
-export QT_INSTALL_CMAKE_PATH=/Users/SatoshiNakamoto/Qt/5.14.0/clang_64/lib/cmake
-export QT_ROOT=/Users/SatoshiNakamoto/Qt/5.14.0
+export QT_INSTALL_CMAKE_PATH=/Users/SatoshiNakamoto/Qt/5.15.0/clang_64/lib/cmake
+export QT_ROOT=/Users/SatoshiNakamoto/Qt/5.15.0
 ```
+
+Installing curl:
+
+```
+brew install autoconf automake libtool
+git clone https://github.com/phracker/MacOSX-SDKs.git ~/MacOSX-SDKs
+export CC=/usr/local/opt/llvm/bin/clang
+export CPPFLAGS="-isysroot $HOME/MacOSX-SDKs/MacOSX10.13.sdk/"
+git clone https://github.com/curl/curl.git
+cd curl
+git checkout curl-7_70_0
+./buildconf
+./configure --disable-shared --enable-static --without-libidn2 -without-ssl --disable-ldap --with-darwinssl
+make install
+```
+
+Installling libbitcoin:
+
+```
+git clone --depth 1 --branch version5 --single-branch "https://github.com/KomodoPlatform/secp256k1"
+cd secp256k1
+./autogen.sh
+./configure --disable-shared --disable-tests --enable-module-recovery
+make -j3
+sudo make install
+cd ../
+```
+
+Installing libbitcoin-system:
+
+```
+git clone --depth 1 --branch version3 --single-branch https://github.com/KomodoPlatform/libbitcoin-system.git
+cd libbitcoin-system
+./autogen.sh
+./configure --with-boost --disable-shared
+make -j3
+sudo make install
+sudo update_dyld_shared_cache
+```
+
 
 ### Install Linux dependencies
 
 In your terminal (shell,...) execute:
 
 ```shell
-sudo apt-get install -y ninja-build cmake git
+sudo apt-get install -y ninja-build cmake git gcc-9 g++-9
 
 curl https://nim-lang.org/choosenim/init.sh -sSf | sh
 
@@ -87,11 +127,34 @@ Add the following environment variables to your `~/.bashrc` or `~/.zshrc` profil
 
 e.g.:
 ```bash
-export QT_INSTALL_CMAKE_PATH=~/Qt/5.14.0/gcc/lib/cmake
-export QT_ROOT=~/Qt/5.14.0
+export QT_INSTALL_CMAKE_PATH=~/Qt/5.15.0/gcc/lib/cmake
+export QT_ROOT=~/Qt/5.15.0
+```
+
+## Set Nim official packages list to our fork packages list
+
+```
+nimble refresh https://raw.githubusercontent.com/KomodoPlatform/nim_kmd_package_list/master/packages.json
+cd ~/.nimble
+mv packages_commandline.json packages_official.json
+cd -
 ```
 
 ## Build AtomicDEX Pro 
+
+Please clone with submodules initialization : `git clone --recurse-submodules --remote-submodules https://github.com/KomodoPlatform/atomicDEX-Pro.git`
+
+Install vcpkg from within the `ci_tools_atomic_dex` folder:
+
+```
+nimble build
+cd vcpkg-repo
+# Windows
+.\bootstrap-vcpkg.bat
+# Linux / OSX
+./bootstrap-vcpkg.sh
+cd -
+```
 
 ### Windows
 
@@ -138,3 +201,36 @@ nimble build
 ```
 
 
+
+## Create AtomicDEX Pro Installer
+
+### Windows
+
+- [Download](https://download.qt.io/official_releases/qt-installer-framework/) and install Qt Installer Framework.
+
+- Add a `QT_IFW_PATH` environment variable pointing to the Qt Installer Framework folder
+
+e.g.: `set QT_IFW_PATH "C:\Qt\QtIFW-3.2.2"`
+
+- Run `ci_tools_atomic_dex\create_installer.bat` script
+
+### Linux
+
+- [Download](https://download.qt.io/official_releases/qt-installer-framework/)
+
+- Run the .run file and install it.
+
+```
+chmod +x QtInstallerFramework-linux-x64.run
+./QtInstallerFramework-linux-x64.run
+```
+
+- Add a `QT_IFW_PATH` environment variable pointing to the Qt Installer Framework folder
+
+e.g.: In `.bashrc` add: `export QT_IFW_PATH=~/Qt/QtIFW-3.2.2`
+
+- Build AtomicDex Pro `./ci_tools_atomic_dex build release`
+
+- Run `ci_tools_atomic_dex\create_installer_linux.sh` script, pass build type as argument to script
+
+e.g.: `.\create_installer_linux.sh Debug` -- or Release

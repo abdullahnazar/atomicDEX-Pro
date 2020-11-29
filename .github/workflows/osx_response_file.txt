@@ -1,0 +1,15 @@
+entt
+folly
+boost-multiprecision
+boost-random
+boost-lockfree
+doctest
+fmt
+curl
+nlohmann-json
+range-v3
+libsodium
+spdlog
+date
+cpprestsdk
+cpp-taskflow
